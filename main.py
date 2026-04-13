@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
+from unittest import result
 from docxtpl import DocxTemplate
 import psycopg2
 import json
 import os
-
+from openpyxl import Workbook
 # ================== TẠO HỒ SƠ ==================
 def create_docs():
     try:
@@ -74,6 +75,28 @@ def create_docs():
 
         # ================== TẠO FILE ==================
         for sohkh, people in result.items():
+
+                    # ================== TẠO FILE EXCEL ==================
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "ThongKeVangNha"
+
+            # Header
+            ws.append(["SOHOK", "CCCD", "HOTEN", "NAMSINH", "QUANHE"])
+
+            for sohkh, people in result.items():
+                for person in people:
+                    ws.append([
+                        sohkh,
+                        person.get("CCCD"),
+                        person.get("HOTEN"),
+                        person.get("NAMSINH"),
+                        person.get("QUANHE"),
+                    ])
+
+            excel_path = os.path.join(output_dir, "thong_ke_vang_nha.xlsx")
+            wb.save(excel_path)
+
             print(f"👉 Đang tạo file cho SOHOK: {sohkh}")
 
             doc = DocxTemplate("BIEN BAN XAC MINH XOA KHAU.docx")
@@ -91,8 +114,10 @@ def create_docs():
             doc.render(context)
             doc.save(file_path)
 
-        messagebox.showinfo("Thành công", f"Đã tạo {len(result)} file trong thư mục output")
-
+        messagebox.showinfo(
+            "Thành công",
+            f"Đã tạo {len(result)} file Word và 1 file Excel thống kê trong thư mục output"
+        )
     except Exception as e:
         print("ERROR:", e)
         messagebox.showerror("Lỗi", str(e))
