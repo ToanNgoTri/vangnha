@@ -74,25 +74,29 @@ def create_docs():
         print(json.dumps(result, indent=4, ensure_ascii=False))
 
         # ================== TẠO FILE ==================
+
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "ThongKeVangNha"
+
+        # Header
+        ws.append(["SOHOK", "CCCD", "HOTEN", "NAMSINH", "QUANHE"])
+
+
         for sohkh, people in result.items():
 
                     # ================== TẠO FILE EXCEL ==================
-            wb = Workbook()
-            ws = wb.active
-            ws.title = "ThongKeVangNha"
 
-            # Header
-            ws.append(["SOHOK", "CCCD", "HOTEN", "NAMSINH", "QUANHE"])
 
-            for sohkh, people in result.items():
-                for person in people:
-                    ws.append([
-                        sohkh,
-                        person.get("CCCD"),
-                        person.get("HOTEN"),
-                        person.get("NAMSINH"),
-                        person.get("QUANHE"),
-                    ])
+            for person in people:
+                ws.append([
+                    sohkh,
+                    person.get("CCCD"),
+                    person.get("HOTEN"),
+                    person.get("NAMSINH"),
+                    person.get("QUANHE"),
+                ])
 
             excel_path = os.path.join(output_dir, "thong_ke_vang_nha.xlsx")
             wb.save(excel_path)
@@ -113,6 +117,14 @@ def create_docs():
 
             doc.render(context)
             doc.save(file_path)
+
+
+            # 🔥 UPDATE PRINTED = TRUE cho SOHOK vừa xử lý
+            cur.execute(
+                'UPDATE public.population SET "PRINTED" = TRUE WHERE "CCCD" = %s;',
+                (person["CCCD"],)
+            )
+            conn.commit()
 
         messagebox.showinfo(
             "Thành công",
